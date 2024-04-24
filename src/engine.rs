@@ -25,12 +25,12 @@ impl Engine {
     }
 
     pub fn make_move(&mut self, from: Position, to: Position) -> Result<(), &'static str> {
-        if !self.is_valid_move(from, to, self.state.get_piece(from).piece) {
+        if !self.is_valid_move(from, to, self.state.get_piece(from).unwrap().piece) {
             return Err("Invalid move");
         }
 
         let piece = self.state.get_piece(from);
-        self.state.set_piece(from, Pieces::default());
+        self.state.set_piece(from, None);
         self.state.set_piece(to, piece);
 
         self.current_player = match self.current_player {
@@ -82,7 +82,7 @@ impl Engine {
         for &(r, c) in captures {
             if r >= 0 && r < 8 && c >= 0 && c < 8 {
                 let capture_pos = (r as usize, c as usize);
-                if self.state.board[capture_pos.0][capture_pos.1].piece != Piece::None {
+                if let Some(_) = self.state.get_piece(capture_pos) {
                     valid_moves.push(capture_pos);
                 }
             }
@@ -91,19 +91,64 @@ impl Engine {
         valid_moves
     }
 
+    pub fn get_valid_knight_move(&self, from: Position, to: Position) -> Vec<Position> {
+        vec![(5, 0), (5, 2)]
+    }
+
     pub fn is_valid_move(&self, from: Position, to: Position, piece: Piece) -> bool {
         match piece {
             Piece::Pawn => self.is_valid_pawn_move(from, to),
+            Piece::Knight => self.is_valid_knight_move(from, to),
             _ => self.is_valid_pawn_move(from, to),
         }
     }
 
+    // FIXME
     pub fn is_valid_pawn_move(&self, from: Position, to: Position) -> bool {
-        self.get_valid_pawn_move(from).contains(&to)
+        let (from_row, from_col) = from;
+        let (to_row, to_col) = to;
+
+        let direction = match self.current_player {
+            Player::White => -1,
+            Player::Black => 1,
+        };
+
+        let forward_one = ((from_row as isize) + direction, from_col);
+        if forward_one.0 as usize == to_row && forward_one.1 == to_col && self.state.get_piece(to).is_none() {
+            return true;
+        }
+
+        let starting_row = match self.current_player {
+            Player::White => 6,
+            Player::Black => 1,
+        };
+        let forward_two = (from_row as isize + 2 * direction) as usize;
+        if forward_two == to_row && from_row == starting_row && self.state.get_piece((forward_one.0 as usize, forward_one.1)).is_none() && self.state.get_piece(to).is_none() {
+            return true;
+        }
+
+        let captures = &[
+            ((from_row as isize + direction) as usize, from_col + 1),
+            ((from_row as isize + direction) as usize, from_col - 1),
+        ];
+        for capture in captures {
+            let (capture_row, capture_col) = *capture;
+            if capture_row < 8 && capture_col < 8 && capture_row == to_row && capture_col == to_col {
+                if let Some(_) = self.state.get_piece((capture_row, capture_col)) {
+                    return true;
+                }
+            }
+        }
+        
+        false
     }
 
-    // TODO
-    pub fn evaluate(&self) -> i32 {
-        0
+    pub fn is_valid_knight_move(&self, from: Position, to: Position) -> bool {
+        true
+    }
+
+    // TODO at the end
+    pub fn evaluate(&self) -> f32 {
+        0.0
     }
 }
