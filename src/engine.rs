@@ -25,7 +25,7 @@ impl Engine {
     }
 
     pub fn make_move(&mut self, from: Position, to: Position) -> Result<(), &'static str> {
-        if !self.is_valid_move(from, to) {
+        if !self.is_valid_move(from, to, self.state.get_piece(from).piece) {
             return Err("Invalid move");
         }
 
@@ -60,7 +60,7 @@ impl Engine {
         let forward_one = ((row as isize) + direction, col);
         if forward_one.0 >= 0
             && forward_one.0 < 8
-            && self.is_valid_move(from, (forward_one.0 as usize, forward_one.1))
+            && self.is_valid_pawn_move(from, (forward_one.0 as usize, forward_one.1))
         {
             valid_moves.push((forward_one.0 as usize, forward_one.1));
         }
@@ -68,9 +68,9 @@ impl Engine {
         let forward_two = (((row as isize) + 2 * direction), col);
         if ((self.current_player == Player::White && row == 6)
             || (self.current_player == Player::Black && row == 1))
-            && self.is_valid_move(from, (forward_two.0 as usize, forward_two.1))
+            && self.is_valid_pawn_move(from, (forward_two.0 as usize, forward_two.1))
         {
-            if self.is_valid_move(from, (forward_two.0 as usize, forward_two.1)) {
+            if self.is_valid_pawn_move(from, (forward_two.0 as usize, forward_two.1)) {
                 valid_moves.push((forward_two.0 as usize, forward_two.1));
             }
         }
@@ -91,9 +91,15 @@ impl Engine {
         valid_moves
     }
 
-    // TODO
-    fn is_valid_move(&self, from: Position, to: Position) -> bool {
-        true
+    pub fn is_valid_move(&self, from: Position, to: Position, piece: Piece) -> bool {
+        match piece {
+            Piece::Pawn => self.is_valid_pawn_move(from, to),
+            _ => self.is_valid_pawn_move(from, to),
+        }
+    }
+
+    pub fn is_valid_pawn_move(&self, from: Position, to: Position) -> bool {
+        self.get_valid_pawn_move(from).contains(&to)
     }
 
     // TODO

@@ -36,21 +36,21 @@ impl Pieces {
         }
     } 
 
-    pub fn render(self: Self) -> String {
-        match (self.piece, self.color) {
-            (Piece::Pawn, Color::Black) => "♙".to_string(),
-            (Piece::Pawn, Color::White) => "♟".to_string(),
-            (Piece::Bishop, Color::Black) => "♗".to_string(),
-            (Piece::Bishop, Color::White) => "♝".to_string(),
-            (Piece::Knight, Color::Black) => "♘".to_string(),
-            (Piece::Knight, Color::White) => "♞".to_string(),
-            (Piece::Rook, Color::Black) => "♖".to_string(),
-            (Piece::Rook, Color::White) => "♜".to_string(),
-            (Piece::Queen, Color::Black) => "♕".to_string(),
-            (Piece::Queen, Color::White) => "♛".to_string(),
-            (Piece::King, Color::Black) => "♔".to_string(),
-            (Piece::King, Color::White) => "♚".to_string(),
-            (_, _) => "".to_string(),
+    pub fn render(self: &Self) -> &'static str {
+        match (&self.piece, &self.color) {
+            (Piece::Pawn, Color::Black) => "♙",
+            (Piece::Pawn, Color::White) => "♟",
+            (Piece::Bishop, Color::Black) => "♗",
+            (Piece::Bishop, Color::White) => "♝",
+            (Piece::Knight, Color::Black) => "♘",
+            (Piece::Knight, Color::White) => "♞",
+            (Piece::Rook, Color::Black) => "♖",
+            (Piece::Rook, Color::White) => "♜",
+            (Piece::Queen, Color::Black) => "♕",
+            (Piece::Queen, Color::White) => "♛",
+            (Piece::King, Color::Black) => "♔",
+            (Piece::King, Color::White) => "♚",
+            (_, _) => "",
         }
     }
 }
