@@ -52,16 +52,29 @@ fn eating_pawn() {
     let board = Board::new();
     let mut engine = Engine::new(board, Player::White);
     println!("{}", engine.state.render());
-    println!("possible moves for (6, 0) (white move): {:?}", engine.get_valid_moves((6, 0), Piece::Pawn));
+    println!(
+        "possible moves for (6, 0) (white move): {:?}",
+        engine.get_valid_moves((6, 0), Piece::Pawn)
+    );
     let _ = engine.make_move((6, 0), engine.get_valid_moves((6, 0), Piece::Pawn)[1]); // move pawn from 1up
     println!("{}", engine.state.render());
-    println!("possible moves for (1, 3) (black move): {:?}", engine.get_valid_moves((1, 1), Piece::Pawn));
+    println!(
+        "possible moves for (1, 3) (black move): {:?}",
+        engine.get_valid_moves((1, 1), Piece::Pawn)
+    );
     let _ = engine.make_move((1, 1), engine.get_valid_moves((1, 1), Piece::Pawn)[1]); // move pawn from 1up
     println!("{}", engine.state.render());
-    println!("possible moves for (4, 0): {:?}", engine.get_valid_moves((4, 0), Piece::Pawn));
-    let _ = engine.make_move((4, 0), engine.get_valid_moves((4, 0), Piece::Pawn)[1]); // move pawn from 1up
+    println!(
+        "possible moves for (4, 0): {:?}",
+        engine.get_valid_moves((4, 0), Piece::Pawn)
+    );
+    // Error: attempt to substract with overflow
+    let _ = engine.make_move((4, 0), engine.get_valid_moves((4, 0), Piece::Pawn)[1]); // eating_pawn
     println!("{}", engine.state.render());
-    println!("possible moves for (4, 0): {:?}", engine.get_valid_moves((4, 0), Piece::Pawn));
+    println!(
+        "possible moves for (4, 0): {:?}",
+        engine.get_valid_moves((4, 0), Piece::Pawn)
+    );
 }
 
 #[test]
@@ -69,11 +82,21 @@ fn simple_game() {
     let board = Board::new();
     let mut engine = Engine::new(board, Player::White);
     println!("{}", engine.state.render());
-    println!("possible moves for (6, 0) (white move): {:?}", engine.get_valid_moves((6, 0), Piece::Pawn));
+    println!(
+        "possible moves for (6, 0) (white move): {:?}",
+        engine.get_valid_moves((6, 0), Piece::Pawn)
+    );
     let _ = engine.make_move((6, 0), engine.get_valid_moves((6, 0), Piece::Pawn)[1]); // move pawn from 1up
     println!("{}", engine.state.render());
-    println!("possible moves for (1, 3) (black move): {:?}", engine.get_valid_moves((1, 1), Piece::Pawn));
-    let _ = engine.make_move((1, 1), engine.get_valid_moves((1, 1), Piece::Pawn)[1]); // move pawn from 1up
+    println!(
+        "possible moves for (1, 3) (black move): {:?}",
+        engine.get_valid_moves((1, 1), Piece::Pawn)
+    );
+    // Error: attempt to substract with overflow
+    let _ = engine.make_move((1, 1), engine.get_valid_moves((1, 1), Piece::Pawn)[1]); // eating_pawn
     println!("{}", engine.state.render());
-    println!("possible moves for (4, 0): {:?}", engine.get_valid_moves((4, 0), Piece::Pawn));
+    println!(
+        "possible moves for (4, 0): {:?}",
+        engine.get_valid_moves((4, 0), Piece::Pawn)
+    );
 }

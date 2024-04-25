@@ -29,9 +29,9 @@ impl Engine {
             return Err("Invalid move");
         }
 
-        let piece = self.state.get_piece(from);
+        let piece = self.state.get_piece(from).unwrap();
         self.state.set_piece(from, None);
-        self.state.set_piece(to, piece);
+        self.state.set_piece(to, Some(piece));
 
         self.current_player = match self.current_player {
             Player::White => Player::Black,
@@ -41,14 +41,26 @@ impl Engine {
         Ok(())
     }
 
+    // TODO at the end
+    pub fn evaluate(&self) -> f32 {
+        0.0
+    }
+}
+
+// get_xxx
+impl Engine {
     pub fn get_valid_moves(&self, from: Position, piece: Piece) -> Vec<Position> {
         match piece {
             Piece::Pawn => self.get_valid_pawn_move(from),
-            _ => vec![],
+            Piece::Bishop => self.get_valid_bishop_move(from),
+            Piece::Knight => self.get_valid_knight_move(from),
+            Piece::Rook => self.get_valid_rook_move(from),
+            Piece::Queen => self.get_valid_queen_move(from),
+            Piece::King => self.get_valid_king_move(from),
         }
     }
 
-    pub fn get_valid_pawn_move(&self, from: Position) -> Vec<Position> {
+    fn get_valid_pawn_move(&self, from: Position) -> Vec<Position> {
         let (row, col) = from;
         let mut valid_moves = Vec::new();
 
@@ -60,19 +72,21 @@ impl Engine {
         let forward_one = ((row as isize) + direction, col);
         if forward_one.0 >= 0
             && forward_one.0 < 8
-            && self.is_valid_pawn_move(from, (forward_one.0 as usize, forward_one.1))
+            && self.is_valid_move(from, (forward_one.0 as usize, forward_one.1), Piece::Pawn)
         {
             valid_moves.push((forward_one.0 as usize, forward_one.1));
         }
 
+        let starting_row = match self.current_player {
+            Player::White => 6,
+            Player::Black => 1,
+        };
+
         let forward_two = (((row as isize) + 2 * direction), col);
-        if ((self.current_player == Player::White && row == 6)
-            || (self.current_player == Player::Black && row == 1))
-            && self.is_valid_pawn_move(from, (forward_two.0 as usize, forward_two.1))
+        if starting_row == row 
+            && self.is_valid_move(from, (forward_two.0 as usize, forward_two.1), Piece::Pawn)
         {
-            if self.is_valid_pawn_move(from, (forward_two.0 as usize, forward_two.1)) {
                 valid_moves.push((forward_two.0 as usize, forward_two.1));
-            }
         }
 
         let captures = &[
@@ -91,20 +105,42 @@ impl Engine {
         valid_moves
     }
 
-    pub fn get_valid_knight_move(&self, from: Position, to: Position) -> Vec<Position> {
+    fn get_valid_bishop_move(&self, from: Position) -> Vec<Position> {
+        vec![]
+    }
+
+    fn get_valid_knight_move(&self, from: Position) -> Vec<Position> {
         vec![(5, 0), (5, 2)]
     }
 
+    fn get_valid_rook_move(&self, from: Position) -> Vec<Position> {
+        vec![]
+    }
+
+    fn get_valid_queen_move(&self, from: Position) -> Vec<Position> {
+        vec![]
+    }
+
+    fn get_valid_king_move(&self, from: Position) -> Vec<Position> {
+        vec![]
+    }
+}
+
+// is_xxx
+impl Engine {
     pub fn is_valid_move(&self, from: Position, to: Position, piece: Piece) -> bool {
         match piece {
             Piece::Pawn => self.is_valid_pawn_move(from, to),
+            Piece::Bishop => self.is_valid_bishop_move(from, to),
             Piece::Knight => self.is_valid_knight_move(from, to),
-            _ => self.is_valid_pawn_move(from, to),
+            Piece::Rook => self.is_valid_rook_move(from, to),
+            Piece::Queen => self.is_valid_queen_move(from, to),
+            Piece::King => self.is_valid_king_move(from, to),
         }
     }
 
     // FIXME
-    pub fn is_valid_pawn_move(&self, from: Position, to: Position) -> bool {
+    fn is_valid_pawn_move(&self, from: Position, to: Position) -> bool {
         let (from_row, from_col) = from;
         let (to_row, to_col) = to;
 
@@ -114,7 +150,10 @@ impl Engine {
         };
 
         let forward_one = ((from_row as isize) + direction, from_col);
-        if forward_one.0 as usize == to_row && forward_one.1 == to_col && self.state.get_piece(to).is_none() {
+        if forward_one.0 as usize == to_row
+            && forward_one.1 == to_col
+            && self.state.get_piece(to).is_none()
+        {
             return true;
         }
 
@@ -122,8 +161,16 @@ impl Engine {
             Player::White => 6,
             Player::Black => 1,
         };
+
         let forward_two = (from_row as isize + 2 * direction) as usize;
-        if forward_two == to_row && from_row == starting_row && self.state.get_piece((forward_one.0 as usize, forward_one.1)).is_none() && self.state.get_piece(to).is_none() {
+        if forward_two == to_row
+            && from_row == starting_row
+            && self
+                .state
+                .get_piece((forward_one.0 as usize, forward_one.1))
+                .is_none()
+            && self.state.get_piece(to).is_none()
+        {
             return true;
         }
 
@@ -131,11 +178,12 @@ impl Engine {
             ((from_row as isize + direction) as usize, from_col + 1),
             ((from_row as isize + direction) as usize, from_col - 1),
         ];
-        for capture in captures {
-            let (capture_row, capture_col) = *capture;
-            if capture_row < 8 && capture_col < 8 && capture_row == to_row && capture_col == to_col {
+        for &(capture_row, capture_col) in captures {
+            if capture_row < 8 && capture_col < 8 {
                 if let Some(_) = self.state.get_piece((capture_row, capture_col)) {
-                    return true;
+                    if capture_row == to_row && capture_col == to_col {
+                        return true;
+                    }
                 }
             }
         }
@@ -143,12 +191,23 @@ impl Engine {
         false
     }
 
-    pub fn is_valid_knight_move(&self, from: Position, to: Position) -> bool {
+    fn is_valid_bishop_move(&self, from: Position, to: Position) -> bool {
         true
     }
 
-    // TODO at the end
-    pub fn evaluate(&self) -> f32 {
-        0.0
+    fn is_valid_knight_move(&self, from: Position, to: Position) -> bool {
+        true
+    }
+
+    fn is_valid_rook_move(&self, from: Position, to: Position) -> bool {
+        true
+    }
+    
+    fn is_valid_queen_move(&self, from: Position, to: Position) -> bool {
+        true
+    }
+
+    fn is_valid_king_move(&self, from: Position, to: Position) -> bool {
+        true
     }
 }

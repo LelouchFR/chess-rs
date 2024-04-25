@@ -22,7 +22,7 @@ impl Board {
                 vec![None; 8],
                 vec![None; 8],
                 vec![None; 8],
-                vec![Some(Pieces::new(Piece::Pawn, Color::White));8],
+                vec![Some(Pieces::new(Piece::Pawn, Color::White)); 8],
                 vec![
                     Some(Pieces::new(Piece::Rook, Color::White)),
                     Some(Pieces::new(Piece::Knight, Color::White)),

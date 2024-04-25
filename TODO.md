@@ -1,5 +1,5 @@
 PIECES:
-    - PAWN   []
+    - PAWN   [x]
     - ROOK   []
     - BISHOP []
     - QUEEN  []
