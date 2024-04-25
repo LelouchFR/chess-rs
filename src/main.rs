@@ -2,6 +2,7 @@
 mod board;
 mod engine;
 mod pieces;
+mod utils;
 
 use crate::board::Board;
 use crate::engine::{Engine, Player};

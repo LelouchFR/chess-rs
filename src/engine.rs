@@ -1,6 +1,7 @@
 use crate::{
     board::Board,
     pieces::{Piece, Pieces},
+    utils::{Position, get_valid_position},
 };
 
 #[derive(PartialEq)]
@@ -13,8 +14,6 @@ pub struct Engine {
     pub state: Board,
     pub current_player: Player,
 }
-
-type Position = (usize, usize);
 
 impl Engine {
     pub fn new(state: Board, current_player: Player) -> Engine {
@@ -175,11 +174,11 @@ impl Engine {
         }
 
         let captures = &[
-            ((from_row as isize + direction) as usize, from_col + 1),
-            ((from_row as isize + direction) as usize, from_col - 1),
+            get_valid_position((from_row as isize + direction, (from_col as isize + 1) as isize)),
+            get_valid_position((from_row as isize + direction, (from_col as isize - 1) as isize)),
         ];
-        for &(capture_row, capture_col) in captures {
-            if capture_row < 8 && capture_col < 8 {
+        for &capture in captures {
+            if let Some((capture_row, capture_col)) = capture {
                 if let Some(_) = self.state.get_piece((capture_row, capture_col)) {
                     if capture_row == to_row && capture_col == to_col {
                         return true;
