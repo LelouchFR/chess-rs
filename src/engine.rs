@@ -105,11 +105,56 @@ impl Engine {
     }
 
     fn get_valid_bishop_move(&self, from: Position) -> Vec<Position> {
-        vec![]
+        let (row, col) = from;
+        let mut valid_moves = Vec::new();
+        let directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)];
+
+        for (direction_row, direction_col) in directions.iter() {
+            let mut current_row = row as isize + *direction_row as isize;
+            let mut current_col = col as isize + *direction_col as isize;
+
+            while current_row >= 0 && current_row < 8 && current_col >= 0 && current_col < 8 {
+                let valid_position = get_valid_position((current_row, current_col));
+                match valid_position {
+                    Some((r, c)) => {
+                        if let Some(_) = self.state.get_piece((r, c)) {
+                            if !matches!(self.state.get_piece((r, c)).unwrap(), Piece) {
+                                valid_moves.push((r, c));
+                            }
+                            break;
+                        } else {
+                            valid_moves.push((r, c));
+                        }
+                    },
+                    None => break,
+                }
+                current_row += *direction_row as isize;
+                current_col += *direction_col as isize;
+            }
+        }
+
+        valid_moves
     }
 
     fn get_valid_knight_move(&self, from: Position) -> Vec<Position> {
-        vec![(5, 0), (5, 2)]
+        let (row, col) = from;
+        let mut valid_moves = Vec::new();
+        let directions = [(-2, 1), (-2, -1), (2, 1), (2, -1)];
+
+        for (direction_row, direction_col) in directions.iter() {
+            let new_row = row as isize + *direction_row as isize;
+            let new_col = col as isize + *direction_col as isize;
+
+            if let Some((r, c)) = get_valid_position((new_row, new_col)) {
+                if let Some(_) = self.state.get_piece((r, c)) {
+                    valid_moves.push((r, c));
+                } else {
+                    valid_moves.push((r, c));
+                }
+            }
+        }
+
+        valid_moves
     }
 
     fn get_valid_rook_move(&self, from: Position) -> Vec<Position> {
@@ -138,7 +183,6 @@ impl Engine {
         }
     }
 
-    // FIXME
     fn is_valid_pawn_move(&self, from: Position, to: Position) -> bool {
         let (from_row, from_col) = from;
         let (to_row, to_col) = to;
@@ -191,11 +235,13 @@ impl Engine {
     }
 
     fn is_valid_bishop_move(&self, from: Position, to: Position) -> bool {
-        true
+        let valid_moves = self.get_valid_moves(from, Piece::Bishop);
+        valid_moves.contains(&to)
     }
 
     fn is_valid_knight_move(&self, from: Position, to: Position) -> bool {
-        true
+        let valid_moves = self.get_valid_moves(from, Piece::Knight);
+        valid_moves.contains(&to)
     }
 
     fn is_valid_rook_move(&self, from: Position, to: Position) -> bool {
