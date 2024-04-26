@@ -1,10 +1,10 @@
 PIECES:
     - PAWN   [x]
-    - ROOK   []
-    - BISHOP []
-    - QUEEN  []
+    - ROOK   [x]
+    - BISHOP [x]
+    - QUEEN  [x]
     - KING   []
-    - KNIGHT []
+    - KNIGHT [x]
 
 TUI:
     - MENU   []

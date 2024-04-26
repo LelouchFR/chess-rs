@@ -1,7 +1,7 @@
 use crate::{
     board::Board,
-    pieces::{Piece, Pieces},
-    utils::{Position, get_valid_position},
+    pieces::{Color, Piece, Pieces},
+    utils::{get_valid_position, Position},
 };
 
 #[derive(PartialEq)]
@@ -13,13 +13,15 @@ pub enum Player {
 pub struct Engine {
     pub state: Board,
     pub current_player: Player,
+    pub move_count: u64,
 }
 
 impl Engine {
-    pub fn new(state: Board, current_player: Player) -> Engine {
+    pub fn new(state: Board, current_player: Player, move_count: u64) -> Engine {
         Engine {
             state,
             current_player,
+            move_count,
         }
     }
 
@@ -27,6 +29,7 @@ impl Engine {
         if !self.is_valid_move(from, to, self.state.get_piece(from).unwrap().piece) {
             return Err("Invalid move");
         }
+        self.move_count += 1;
 
         let piece = self.state.get_piece(from).unwrap();
         self.state.set_piece(from, None);
@@ -85,7 +88,7 @@ impl Engine {
         if starting_row == row 
             && self.is_valid_move(from, (forward_two.0 as usize, forward_two.1), Piece::Pawn)
         {
-                valid_moves.push((forward_two.0 as usize, forward_two.1));
+            valid_moves.push((forward_two.0 as usize, forward_two.1));
         }
 
         let captures = &[
@@ -117,8 +120,13 @@ impl Engine {
                 let valid_position = get_valid_position((current_row, current_col));
                 match valid_position {
                     Some((r, c)) => {
-                        if let Some(_) = self.state.get_piece((r, c)) {
-                            if !matches!(self.state.get_piece((r, c)).unwrap(), Piece) {
+                        let current_player_color = match self.current_player {
+                            Player::White => Color::White,
+                            Player::Black => Color::Black,
+                        };
+
+                        if let Some(piece) = self.state.get_piece((r, c)) {
+                            if piece.color != current_player_color {
                                 valid_moves.push((r, c));
                             }
                             break;
@@ -158,14 +166,56 @@ impl Engine {
     }
 
     fn get_valid_rook_move(&self, from: Position) -> Vec<Position> {
-        vec![]
+        let (row, col) = from;
+        let mut valid_moves = Vec::new();
+        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+        for (direction_row, direction_col) in directions.iter() {
+            let mut current_row = row as isize + *direction_row as isize;
+            let mut current_col = col as isize + *direction_col as isize;
+
+            while current_row >= 0 && current_row < 8 && current_col >= 0 && current_col < 8 {
+                let valid_position = get_valid_position((current_row, current_col));
+                match valid_position {
+                    Some((r, c)) => {
+                        let current_player_color = match self.current_player {
+                            Player::White => Color::White,
+                            Player::Black => Color::Black,
+                        };
+
+                        if let Some(piece) = self.state.get_piece((r, c)) {
+                            if piece.color != current_player_color {
+                                valid_moves.push((r, c));
+                            }
+                            break;
+                        } else {
+                            valid_moves.push((r, c));
+                        }
+                    },
+                    None => break,
+                }
+                current_row += *direction_row as isize;
+                current_col += *direction_col as isize;
+            }
+        }
+
+        valid_moves
     }
 
     fn get_valid_queen_move(&self, from: Position) -> Vec<Position> {
-        vec![]
+        let mut valid_moves = Vec::new();
+        valid_moves.extend(self.get_valid_bishop_move(from));
+        valid_moves.extend(self.get_valid_rook_move(from));
+        valid_moves
     }
 
+    // TODO
     fn get_valid_king_move(&self, from: Position) -> Vec<Position> {
+        let (row, col) = from;
+        let mut valid_moves: Vec<Position> = Vec::new();
+        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+        // Check if he is under attack
+        // scan the board and check if a possible move is the position of the king
         vec![]
     }
 }
@@ -218,8 +268,14 @@ impl Engine {
         }
 
         let captures = &[
-            get_valid_position((from_row as isize + direction, (from_col as isize + 1) as isize)),
-            get_valid_position((from_row as isize + direction, (from_col as isize - 1) as isize)),
+            get_valid_position((
+                from_row as isize + direction,
+                (from_col as isize + 1) as isize,
+            )),
+            get_valid_position((
+                from_row as isize + direction,
+                (from_col as isize - 1) as isize,
+            )),
         ];
         for &capture in captures {
             if let Some((capture_row, capture_col)) = capture {
@@ -245,11 +301,13 @@ impl Engine {
     }
 
     fn is_valid_rook_move(&self, from: Position, to: Position) -> bool {
-        true
+        let valid_moves = self.get_valid_moves(from, Piece::Rook);
+        valid_moves.contains(&to)
     }
     
     fn is_valid_queen_move(&self, from: Position, to: Position) -> bool {
-        true
+        let mut valid_moves = self.get_valid_moves(from, Piece::Queen);
+        valid_moves.contains(&to)
     }
 
     fn is_valid_king_move(&self, from: Position, to: Position) -> bool {
