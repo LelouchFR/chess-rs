@@ -3,6 +3,7 @@ use crate::{
     pieces::{Color, Piece, Pieces},
     utils::Position,
 };
+use std::collections::HashMap;
 
 #[derive(Default, Clone)]
 pub struct Board {
@@ -80,14 +81,16 @@ impl Board {
         }
     }
 
-    pub fn scan(&self, engine: &Engine) -> Vec<Vec<Position>> {
+    pub fn scan(&self, engine: &Engine) -> Vec<HashMap<Pieces, Vec<Position>>> {
         let mut all_possible_moves = Vec::new();
 
         for row in 0..=self.board.len() - 1 {
             for col in 0..=row {
                 if let Some(piece) = &engine.state.board[row][col] {
-                    all_possible_moves
-                        .push(engine.get_valid_moves((row, col), piece.piece.clone()));
+                    all_possible_moves.push(HashMap::from([(
+                        piece.clone(),
+                        engine.get_valid_moves((row, col), piece.piece.clone()),
+                    )]));
                 }
             }
         }
@@ -112,7 +115,7 @@ impl Board {
         result
     }
 
-    pub fn get_piece(&self, from: (usize, usize)) -> Option<Pieces> {
+    pub fn get_piece(&self, from: Position) -> Option<Pieces> {
         let (row, col) = from;
         match &self.board[row][col] {
             Some(piece) => Some(piece.clone()),
@@ -120,7 +123,7 @@ impl Board {
         }
     }
 
-    pub fn set_piece(&mut self, from: (usize, usize), piece: Option<Pieces>) {
+    pub fn set_piece(&mut self, from: Position, piece: Option<Pieces>) {
         let (row, col) = from;
         self.board[row][col] = piece;
     }

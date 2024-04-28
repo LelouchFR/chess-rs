@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Hash, Eq, Debug)]
 pub enum Piece {
     Pawn,
     Bishop,
@@ -8,13 +8,13 @@ pub enum Piece {
     King,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Hash, Eq, Debug)]
 pub enum Color {
     Black,
     White,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Hash, Eq, Debug)]
 pub struct Pieces {
     pub piece: Piece,
     pub color: Color,
